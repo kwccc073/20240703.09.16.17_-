@@ -54,14 +54,15 @@ const schema = new Schema({
   cart: {
     type: [cartSchema]
   },
+  // 使用者或管理員（通常會分開兩個model，但這個範例是合在一起）
   role: {
     // 資料型態為數字，預設值為檔案UserRole裡的USER
     type: Number,
     default: UserRole.USER
   }
 }, {
-  timestamps: true,
-  versionKey: false
+  timestamps: true, // 紀錄建立時間&更新時間
+  versionKey: false // 紀錄資料修改幾次
 })
 
 // schema.pre() 是 Mongoose 中的一個方法，用於在某些操作（如保存、刪除、更新等）發生之前執行預處理邏輯
@@ -83,12 +84,16 @@ schema.pre('save', function (next) {
   next()
 })
 
+// 購物車總數量--------------------------------
+// virtual -> 建立虛擬欄位cartQuantity
+// .get() -> 定義該欄位資料產生的方式
 schema.virtual('cartQuantity').get(function () {
-  const user = this // 現在這筆的使用者資料
-  // 購物車累加把所有數量加起來
+  // 現在這筆的使用者資料
+  const user = this // 這裡不可使用箭頭函式，不然this會取不到資料
+  // .reduce() -> 累加（把所有數量加起來）
   return user.cart.reduce((total, current) => {
     return total + current.quantity
-  }, 0)
+  }, 0) // 初始值是0
 })
 
 export default model('users', schema)
